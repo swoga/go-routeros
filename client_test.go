@@ -89,8 +89,7 @@ func TestDialInvalidPort(t *testing.T) {
 		c.Close()
 		t.Fatalf("Dial succeeded; want error")
 	}
-	if err.Error() != "dial tcp: lookup tcp/xxx: getaddrinfow: The specified class was not found." &&
-		err.Error() != "dial tcp: lookup tcp/xxx: Servname not supported for ai_socktype" {
+	if err.Error() != "dial tcp: address tcp/xxx: unknown port" {
 		t.Fatal(err)
 	}
 }
@@ -101,8 +100,7 @@ func TestDialTLSInvalidPort(t *testing.T) {
 		c.Close()
 		t.Fatalf("Dial succeeded; want error")
 	}
-	if err.Error() != "dial tcp: lookup tcp/xxx: getaddrinfow: The specified class was not found." &&
-		err.Error() != "dial tcp: lookup tcp/xxx: Servname not supported for ai_socktype" {
+	if err.Error() != "dial tcp: address tcp/xxx: unknown port" {
 		t.Fatal(err)
 	}
 }
