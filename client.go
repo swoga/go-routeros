@@ -104,7 +104,7 @@ func (c *Client) Login(username, password string) error {
 		return fmt.Errorf("RouterOS: /login: invalid ret (challenge) hex string received: %s", err)
 	}
 
-	r, err = c.Run("/login", "=name="+username, "=response="+c.challengeResponse(b, password))
+	_, err = c.Run("/login", "=name="+username, "=response="+c.challengeResponse(b, password))
 	if err != nil {
 		return err
 	}
