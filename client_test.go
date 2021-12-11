@@ -1,9 +1,11 @@
 package routeros
 
 import (
+	"context"
 	"flag"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -102,6 +104,118 @@ func TestDialTLSInvalidPort(t *testing.T) {
 	}
 	if err.Error() != "dial tcp: address tcp/xxx: unknown port" {
 		t.Fatal(err)
+	}
+}
+
+func TestDialContextTimeoutWithBackroundContext(t *testing.T) {
+	c, err := DialContext(context.Background(), "192.0.2.1:8729", "x", "x", time.Second)
+	if err == nil {
+		c.Close()
+		t.Fatalf("TestDialContextTimeoutWithBackroundContext succeeded; want error")
+	}
+
+	if err.Error() != "dial tcp 192.0.2.1:8729: i/o timeout" {
+		t.Fatalf("TestDialContextTimeoutWithBackroundContext: timeout expected. Has: %s", err)
+	}
+}
+
+func TestDialContextTLSTimeoutWithBackroundContext(t *testing.T) {
+	c, err := DialContextTLS(context.Background(), "192.0.2.1:8729", "x", "x", nil, time.Second)
+	if err == nil {
+		c.Close()
+		t.Fatalf("TestDialContextTLSTimeoutWithBackroundContext succeeded; want error")
+	}
+
+	if err.Error() != "dial tcp 192.0.2.1:8729: i/o timeout" {
+		t.Fatalf("TestDialContextTLSTimeoutWithBackroundContext: timeout expected. Has: %s", err)
+	}
+}
+
+func TestDialContextCancel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	chErr := make(chan error)
+	go func() {
+		c, err := DialContext(ctx, "192.0.2.1:8729", "x", "x", 0)
+		chErr <- err
+		if err == nil {
+			c.Close()
+		}
+	}()
+
+	cancel()
+	err := <-chErr
+	if err == nil {
+		t.Fatalf("TestDialContextCancel succeeded; want error")
+	}
+
+	if err.Error() != "dial tcp 192.0.2.1:8729: operation was canceled" {
+		t.Fatalf("TestDialContextCancel: timeout expected. Has: %s", err)
+	}
+}
+
+func TestDialContextTLSCancel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	chErr := make(chan error)
+	go func() {
+		c, err := DialContextTLS(ctx, "192.0.2.1:8729", "x", "x", nil, 0)
+		chErr <- err
+		if err == nil {
+			c.Close()
+		}
+	}()
+
+	cancel()
+	err := <-chErr
+	if err == nil {
+		t.Fatalf("TestDialContextTLSCancel succeeded; want error")
+	}
+
+	if err.Error() != "dial tcp 192.0.2.1:8729: operation was canceled" {
+		t.Fatalf("TestDialContextTLSCancel: timeout expected. Has: %s", err)
+	}
+}
+
+func TestDialContextWithContextTimeout(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	chErr := make(chan error)
+	go func() {
+		c, err := DialContext(ctx, "192.0.2.1:8729", "x", "x", 0)
+		chErr <- err
+		if err == nil {
+			c.Close()
+		}
+	}()
+
+	err := <-chErr
+	if err == nil {
+		t.Fatalf("TestDialContextWithContextTimeout succeeded; want error")
+	}
+
+	if err.Error() != "dial tcp 192.0.2.1:8729: i/o timeout" {
+		t.Fatalf("TestDialContextWithContextTimeout: timeout expected. Has: %s", err)
+	}
+}
+
+func TestDialContextTLSWithContextTimeout(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	chErr := make(chan error)
+	go func() {
+		c, err := DialContextTLS(ctx, "192.0.2.1:8729", "x", "x", nil, 0)
+		chErr <- err
+		if err == nil {
+			c.Close()
+		}
+	}()
+
+	err := <-chErr
+	if err == nil {
+		t.Fatalf("TestDialContextTLSWithContextTimeout succeeded; want error")
+	}
+
+	if err.Error() != "dial tcp 192.0.2.1:8729: i/o timeout" {
+		t.Fatalf("TestDialContextTLSWithContextTimeout: timeout expected. Has: %s", err)
 	}
 }
 
