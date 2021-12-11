@@ -2,6 +2,7 @@ package routeros_test
 
 import (
 	"io"
+	"net"
 	"testing"
 
 	"github.com/swoga/go-routeros"
@@ -390,30 +391,18 @@ func TestListen(t *testing.T) {
 	}
 }
 
-type conn struct {
-	*io.PipeReader
-	*io.PipeWriter
-}
-
-func (c *conn) Close() error {
-	c.PipeReader.Close()
-	c.PipeWriter.Close()
-	return nil
-}
-
 func newPair(t *testing.T) (*routeros.Client, *fakeServer) {
-	ar, aw := io.Pipe()
-	br, bw := io.Pipe()
+	server, client := net.Pipe()
 
-	c, err := routeros.NewClient(&conn{ar, bw})
+	c, err := routeros.NewClient(client)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	s := &fakeServer{
-		proto.NewReader(br),
-		proto.NewWriter(aw),
-		&conn{br, aw},
+		proto.NewReader(server),
+		proto.NewWriter(server),
+		server,
 	}
 
 	return c, s

@@ -20,7 +20,7 @@ import (
 type Client struct {
 	Queue int
 
-	rwc     io.ReadWriteCloser
+	conn    net.Conn
 	r       proto.Reader
 	w       proto.Writer
 	closing bool
@@ -31,11 +31,11 @@ type Client struct {
 }
 
 // NewClient returns a new Client over rwc. Login must be called.
-func NewClient(rwc io.ReadWriteCloser) (*Client, error) {
+func NewClient(conn net.Conn) (*Client, error) {
 	return &Client{
-		rwc: rwc,
-		r:   proto.NewReader(rwc),
-		w:   proto.NewWriter(rwc),
+		conn: conn,
+		r:    proto.NewReader(conn),
+		w:    proto.NewWriter(conn),
 	}, nil
 }
 
@@ -57,10 +57,10 @@ func DialTLS(address, username, password string, tlsConfig *tls.Config) (*Client
 	return newClientAndLogin(conn, username, password)
 }
 
-func newClientAndLogin(rwc io.ReadWriteCloser, username, password string) (*Client, error) {
-	c, err := NewClient(rwc)
+func newClientAndLogin(conn net.Conn, username, password string) (*Client, error) {
+	c, err := NewClient(conn)
 	if err != nil {
-		rwc.Close()
+		conn.Close()
 		return nil, err
 	}
 	err = c.Login(username, password)
@@ -80,7 +80,7 @@ func (c *Client) Close() {
 	}
 	c.closing = true
 	c.mu.Unlock()
-	c.rwc.Close()
+	c.conn.Close()
 }
 
 // Login runs the /login command. Dial and DialTLS call this automatically.
