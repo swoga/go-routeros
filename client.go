@@ -33,11 +33,11 @@ type Client struct {
 }
 
 // NewClient returns a new Client over rwc. Login must be called.
-func NewClient(conn net.Conn) (*Client, error) {
+func NewClient(conn net.Conn, timeout time.Duration) (*Client, error) {
 	return &Client{
 		conn: conn,
-		r:    proto.NewReader(conn),
-		w:    proto.NewWriter(conn),
+		r:    proto.NewReader(conn, timeout),
+		w:    proto.NewWriter(conn, timeout),
 	}, nil
 }
 
@@ -47,7 +47,7 @@ func Dial(address, username, password string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newClientAndLogin(conn, username, password)
+	return newClientAndLogin(conn, username, password, time.Minute)
 }
 
 // DialContext connects and logs in to a RouterOS device.
@@ -57,7 +57,7 @@ func DialContext(ctx context.Context, address, username, password string, timeou
 	if err != nil {
 		return nil, err
 	}
-	return newClientAndLogin(conn, username, password)
+	return newClientAndLogin(conn, username, password, timeout)
 }
 
 // DialTLS connects and logs in to a RouterOS device using TLS.
@@ -66,7 +66,7 @@ func DialTLS(address, username, password string, tlsConfig *tls.Config) (*Client
 	if err != nil {
 		return nil, err
 	}
-	return newClientAndLogin(conn, username, password)
+	return newClientAndLogin(conn, username, password, time.Minute)
 }
 
 // DialContextTls connects and logs in to a RouterOS device using TLS.
@@ -78,11 +78,11 @@ func DialContextTLS(ctx context.Context, address, username, password string, tls
 	if err != nil {
 		return nil, err
 	}
-	return newClientAndLogin(conn, username, password)
+	return newClientAndLogin(conn, username, password, timeout)
 }
 
-func newClientAndLogin(conn net.Conn, username, password string) (*Client, error) {
-	c, err := NewClient(conn)
+func newClientAndLogin(conn net.Conn, username, password string, timeout time.Duration) (*Client, error) {
+	c, err := NewClient(conn, timeout)
 	if err != nil {
 		conn.Close()
 		return nil, err

@@ -4,6 +4,7 @@ import (
 	"io"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/swoga/go-routeros"
 	"github.com/swoga/go-routeros/proto"
@@ -394,14 +395,14 @@ func TestListen(t *testing.T) {
 func newPair(t *testing.T) (*routeros.Client, *fakeServer) {
 	server, client := net.Pipe()
 
-	c, err := routeros.NewClient(client)
+	c, err := routeros.NewClient(client, time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	s := &fakeServer{
-		proto.NewReader(server),
-		proto.NewWriter(server),
+		proto.NewReader(server, time.Second),
+		proto.NewWriter(server, time.Second),
 		server,
 	}
 

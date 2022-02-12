@@ -2,8 +2,22 @@ package proto
 
 import (
 	"bytes"
+	"io"
 	"testing"
+	"time"
 )
+
+type fakeWriterDeadline struct {
+	io.Writer
+}
+
+func (f fakeWriterDeadline) SetWriteDeadline(t time.Time) error {
+	return nil
+}
+
+func newFakeWriterDeadline(w io.Writer) fakeWriterDeadline {
+	return fakeWriterDeadline{w}
+}
 
 func TestEncodeLength(t *testing.T) {
 	for _, d := range []struct {

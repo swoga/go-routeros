@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"time"
 )
 
 // Reader reads sentences from a RouterOS device.
@@ -12,13 +13,34 @@ type Reader interface {
 	ReadSentence() (*Sentence, error)
 }
 
+type ReaderDeadline interface {
+	io.Reader
+	SetReadDeadline(t time.Time) error
+}
+
 type reader struct {
-	*bufio.Reader
+	bufferedReader  *bufio.Reader
+	setReadDeadline func(time.Time) error
+	timeout         time.Duration
 }
 
 // NewReader returns a new Reader to read from r.
-func NewReader(r io.Reader) Reader {
-	return &reader{bufio.NewReader(r)}
+func NewReader(r ReaderDeadline, timeout time.Duration) Reader {
+	return &reader{
+		bufferedReader:  bufio.NewReader(r),
+		setReadDeadline: r.SetReadDeadline,
+		timeout:         timeout,
+	}
+}
+
+func (r *reader) setDeadline() {
+	deadline := time.Now().Add(r.timeout)
+	r.setReadDeadline(deadline)
+}
+
+func (r *reader) readFull(buf []byte) (int, error) {
+	r.setDeadline()
+	return io.ReadFull(r.bufferedReader, buf)
 }
 
 // ReadSentence reads a sentence.
@@ -59,7 +81,7 @@ func (r *reader) ReadSentence() (*Sentence, error) {
 
 func (r *reader) readNumber(size int) (int64, error) {
 	b := make([]byte, size)
-	_, err := io.ReadFull(r, b)
+	_, err := r.readFull(b)
 	if err != nil {
 		return -1, err
 	}
@@ -102,7 +124,7 @@ func (r *reader) readWord() ([]byte, error) {
 		return nil, err
 	}
 	b := make([]byte, l)
-	_, err = io.ReadFull(r, b)
+	_, err = r.readFull(b)
 	if err != nil {
 		return nil, err
 	}

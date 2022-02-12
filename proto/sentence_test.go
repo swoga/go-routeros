@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestReadWrite(t *testing.T) {
@@ -19,7 +20,8 @@ func TestReadWrite(t *testing.T) {
 	} {
 		buf := &bytes.Buffer{}
 		// Write sentence into buf.
-		w := NewWriter(buf)
+		wd := newFakeWriterDeadline(buf)
+		w := NewWriter(wd, time.Second)
 		w.BeginSentence()
 		for _, word := range test.in {
 			w.WriteWord(word)
@@ -30,7 +32,8 @@ func TestReadWrite(t *testing.T) {
 			continue
 		}
 		// Read sentence from buf.
-		r := NewReader(buf)
+		rd := newFakeReaderDeadline(buf)
+		r := NewReader(rd, time.Second)
 		sen, err := r.ReadSentence()
 		if err != nil {
 			t.Errorf("#%d: Input(%#q)=%#v", i, test.in, err)

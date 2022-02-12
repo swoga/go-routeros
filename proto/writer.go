@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"sync"
+	"time"
 )
 
 // Writer writes words to a RouterOS device.
@@ -13,15 +14,26 @@ type Writer interface {
 	EndSentence() error
 }
 
+type WriterDeadline interface {
+	io.Writer
+	SetWriteDeadline(t time.Time) error
+}
+
 type writer struct {
-	*bufio.Writer
-	err error
+	bufferedWriter   *bufio.Writer
+	setWriteDeadline func(time.Time) error
+	timeout          time.Duration
+	err              error
 	sync.Mutex
 }
 
 // NewWriter returns a new Writer to write to w.
-func NewWriter(w io.Writer) Writer {
-	return &writer{Writer: bufio.NewWriter(w)}
+func NewWriter(w WriterDeadline, timeout time.Duration) Writer {
+	return &writer{
+		bufferedWriter:   bufio.NewWriter(w),
+		setWriteDeadline: w.SetWriteDeadline,
+		timeout:          timeout,
+	}
 }
 
 // BeginSentence prepares w for writing a sentence.
@@ -45,11 +57,17 @@ func (w *writer) WriteWord(word string) {
 	w.write(b)
 }
 
+func (w *writer) setDeadline() {
+	deadline := time.Now().Add(w.timeout)
+	w.setWriteDeadline(deadline)
+}
+
 func (w *writer) flush() {
 	if w.err != nil {
 		return
 	}
-	err := w.Flush()
+	w.setDeadline()
+	err := w.bufferedWriter.Flush()
 	if err != nil {
 		w.err = err
 	}
@@ -59,7 +77,8 @@ func (w *writer) write(b []byte) {
 	if w.err != nil {
 		return
 	}
-	_, err := w.Write(b)
+	w.setDeadline()
+	_, err := w.bufferedWriter.Write(b)
 	if err != nil {
 		w.err = err
 	}
