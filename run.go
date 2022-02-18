@@ -2,6 +2,7 @@ package routeros
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/swoga/go-routeros/proto"
 )
@@ -29,7 +30,17 @@ func (c *Client) RunArgs(sentence []string) (*Reply, error) {
 	if err != nil {
 		return nil, err
 	}
-	for range a.reC {
+
+readAllSentences:
+	for {
+		select {
+		case _, open := <-a.reC:
+			if !open {
+				break readAllSentences
+			}
+		case <-time.After(c.timeout):
+			return nil, errAsyncTimeout
+		}
 	}
 	return &a.Reply, a.err
 }

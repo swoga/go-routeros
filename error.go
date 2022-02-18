@@ -9,6 +9,7 @@ import (
 var (
 	errAlreadyAsync   = errors.New("Async() has already been called")
 	errAsyncLoopEnded = errors.New("Async() loop has ended - probably read error")
+	errAsyncTimeout   = errors.New("RunArgs() async read timeout")
 )
 
 // UnknownReplyError records the sentence whose Word is unknown.
