@@ -30,14 +30,16 @@ type Client struct {
 	nextTag int64
 	tags    map[string]sentenceProcessor
 	mu      sync.Mutex
+	timeout time.Duration
 }
 
 // NewClient returns a new Client over rwc. Login must be called.
 func NewClient(conn net.Conn, timeout time.Duration) (*Client, error) {
 	return &Client{
-		conn: conn,
-		r:    proto.NewReader(conn, timeout),
-		w:    proto.NewWriter(conn, timeout),
+		conn:    conn,
+		r:       proto.NewReader(conn, timeout),
+		w:       proto.NewWriter(conn, timeout),
+		timeout: timeout,
 	}, nil
 }
 
