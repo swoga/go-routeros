@@ -28,7 +28,7 @@ func (c *Client) readReply() (*Reply, error) {
 
 	var lastErr error
 	for {
-		sen, err := c.r.ReadSentence()
+		sen, err := c.r.ReadSentence(true)
 		if err != nil {
 			return nil, err
 		}

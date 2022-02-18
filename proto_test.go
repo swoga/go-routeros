@@ -416,7 +416,7 @@ type fakeServer struct {
 }
 
 func (f *fakeServer) readSentence(t *testing.T, want string) {
-	sen, err := f.r.ReadSentence()
+	sen, err := f.r.ReadSentence(true)
 	if err != nil {
 		t.Fatal(err)
 	}

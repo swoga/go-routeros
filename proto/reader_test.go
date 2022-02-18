@@ -33,7 +33,7 @@ func TestReadLength(t *testing.T) {
 		buf := bytes.NewBuffer(d.rawBytes)
 		rd := newFakeReaderDeadline(buf)
 		r := NewReader(rd, time.Second).(*reader)
-		l, err := r.readLength()
+		l, err := r.readLength(true)
 		if err != nil {
 			t.Fatalf("readLength error: %s", err)
 		}

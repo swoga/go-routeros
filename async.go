@@ -44,7 +44,7 @@ func (c *Client) asyncLoopChan(errC chan<- error) {
 
 func (c *Client) asyncLoop() error {
 	for {
-		sen, err := c.r.ReadSentence()
+		sen, err := c.r.ReadSentence(false)
 		if err != nil {
 			c.closeTags(err)
 			return err

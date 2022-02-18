@@ -34,7 +34,7 @@ func TestReadWrite(t *testing.T) {
 		// Read sentence from buf.
 		rd := newFakeReaderDeadline(buf)
 		r := NewReader(rd, time.Second)
-		sen, err := r.ReadSentence()
+		sen, err := r.ReadSentence(true)
 		if err != nil {
 			t.Errorf("#%d: Input(%#q)=%#v", i, test.in, err)
 			continue

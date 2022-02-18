@@ -10,7 +10,7 @@ import (
 
 // Reader reads sentences from a RouterOS device.
 type Reader interface {
-	ReadSentence() (*Sentence, error)
+	ReadSentence(setDeadline bool) (*Sentence, error)
 }
 
 type ReaderDeadline interface {
@@ -33,21 +33,25 @@ func NewReader(r ReaderDeadline, timeout time.Duration) Reader {
 	}
 }
 
-func (r *reader) setDeadline() {
-	deadline := time.Now().Add(r.timeout)
+func (r *reader) setDeadline(setDeadline bool) {
+	deadline := time.Time{}
+
+	if setDeadline {
+		deadline = time.Now().Add(r.timeout)
+	}
 	r.setReadDeadline(deadline)
 }
 
-func (r *reader) readFull(buf []byte) (int, error) {
-	r.setDeadline()
+func (r *reader) readFull(buf []byte, setDeadline bool) (int, error) {
+	r.setDeadline(setDeadline)
 	return io.ReadFull(r.bufferedReader, buf)
 }
 
 // ReadSentence reads a sentence.
-func (r *reader) ReadSentence() (*Sentence, error) {
+func (r *reader) ReadSentence(setDeadline bool) (*Sentence, error) {
 	sen := NewSentence()
 	for {
-		b, err := r.readWord()
+		b, err := r.readWord(setDeadline)
 		if err != nil {
 			return nil, err
 		}
@@ -79,9 +83,9 @@ func (r *reader) ReadSentence() (*Sentence, error) {
 	}
 }
 
-func (r *reader) readNumber(size int) (int64, error) {
+func (r *reader) readNumber(size int, setDeadline bool) (int64, error) {
 	b := make([]byte, size)
-	_, err := r.readFull(b)
+	_, err := r.readFull(b, setDeadline)
 	if err != nil {
 		return -1, err
 	}
@@ -92,8 +96,8 @@ func (r *reader) readNumber(size int) (int64, error) {
 	return num, nil
 }
 
-func (r *reader) readLength() (int64, error) {
-	l, err := r.readNumber(1)
+func (r *reader) readLength(setDeadline bool) (int64, error) {
+	l, err := r.readNumber(1, setDeadline)
 	if err != nil {
 		return -1, err
 	}
@@ -101,16 +105,16 @@ func (r *reader) readLength() (int64, error) {
 	switch {
 	case l&0x80 == 0x00:
 	case (l & 0xC0) == 0x80:
-		n, err = r.readNumber(1)
+		n, err = r.readNumber(1, true)
 		l = l & ^0xC0 << 8 | n
 	case l&0xE0 == 0xC0:
-		n, err = r.readNumber(2)
+		n, err = r.readNumber(2, true)
 		l = l & ^0xE0 << 16 | n
 	case l&0xF0 == 0xE0:
-		n, err = r.readNumber(3)
+		n, err = r.readNumber(3, true)
 		l = l & ^0xF0 << 24 | n
 	case l&0xF8 == 0xF0:
-		l, err = r.readNumber(4)
+		l, err = r.readNumber(4, true)
 	}
 	if err != nil {
 		return -1, err
@@ -118,13 +122,13 @@ func (r *reader) readLength() (int64, error) {
 	return l, nil
 }
 
-func (r *reader) readWord() ([]byte, error) {
-	l, err := r.readLength()
+func (r *reader) readWord(setDeadline bool) ([]byte, error) {
+	l, err := r.readLength(setDeadline)
 	if err != nil {
 		return nil, err
 	}
 	b := make([]byte, l)
-	_, err = r.readFull(b)
+	_, err = r.readFull(b, true)
 	if err != nil {
 		return nil, err
 	}
