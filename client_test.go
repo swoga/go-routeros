@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -91,7 +93,11 @@ func TestDialInvalidPort(t *testing.T) {
 		c.Close()
 		t.Fatalf("Dial succeeded; want error")
 	}
-	if err.Error() != "dial tcp: address tcp/xxx: unknown port" {
+	errors := []string{
+		"dial tcp: address tcp/xxx: unknown port",
+		"dial tcp: lookup tcp/xxx: Servname not supported for ai_socktype",
+	}
+	if !slices.Contains(errors, err.Error()) {
 		t.Fatal(err)
 	}
 }
@@ -102,7 +108,11 @@ func TestDialTLSInvalidPort(t *testing.T) {
 		c.Close()
 		t.Fatalf("Dial succeeded; want error")
 	}
-	if err.Error() != "dial tcp: address tcp/xxx: unknown port" {
+	errors := []string{
+		"dial tcp: address tcp/xxx: unknown port",
+		"dial tcp: lookup tcp/xxx: Servname not supported for ai_socktype",
+	}
+	if !slices.Contains(errors, err.Error()) {
 		t.Fatal(err)
 	}
 }
