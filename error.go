@@ -10,6 +10,7 @@ var (
 	errAlreadyAsync   = errors.New("Async() has already been called")
 	errAsyncLoopEnded = errors.New("Async() loop has ended - probably read error")
 	errAsyncTimeout   = errors.New("RunArgs() async read timeout")
+	errEmptyWord      = errors.New("RunArgs() with empty word")
 )
 
 // UnknownReplyError records the sentence whose Word is unknown.

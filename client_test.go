@@ -87,6 +87,19 @@ func TestRunError(tt *testing.T) {
 	}
 }
 
+func TestRunEmptyWord(tt *testing.T) {
+	t := newLiveTest(tt)
+	defer t.c.Close()
+	_, err := t.c.Run("/ip/address/add", "")
+	if err != errEmptyWord {
+		t.Errorf("expected error: %v, but got: %v", errEmptyWord, err)
+	}
+	_, err = t.c.Run("/ip/address/add", "   ")
+	if err != errEmptyWord {
+		t.Errorf("expected error: %v, but got: %v", errEmptyWord, err)
+	}
+}
+
 func TestDialInvalidPort(t *testing.T) {
 	c, err := Dial("127.0.0.1:xxx", "x", "x")
 	if err == nil {

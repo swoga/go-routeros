@@ -2,6 +2,7 @@ package routeros
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/swoga/go-routeros/proto"
@@ -19,6 +20,12 @@ func (c *Client) Run(sentence ...string) (*Reply, error) {
 
 // RunArgs sends a sentence to the RouterOS device and waits for the reply.
 func (c *Client) RunArgs(sentence []string) (*Reply, error) {
+	for _, word := range sentence {
+		// check if word is empty or only contains spaces
+		if len(strings.Trim(word, " ")) == 0 {
+			return nil, errEmptyWord
+		}
+	}
 	c.w.BeginSentence()
 	for _, word := range sentence {
 		c.w.WriteWord(word)
