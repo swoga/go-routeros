@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/swoga/go-routeros/proto"
@@ -27,10 +28,14 @@ type Client struct {
 	w       proto.Writer
 	closing bool
 	async   bool
-	nextTag int64
+	lastTag atomic.Uint64
 	tags    map[string]sentenceProcessor
 	mu      sync.Mutex
 	timeout time.Duration
+}
+
+func (c *Client) nextTag() uint64 {
+	return c.lastTag.Add(1)
 }
 
 // NewClient returns a new Client over rwc. Login must be called.

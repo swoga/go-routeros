@@ -1,7 +1,7 @@
 package routeros
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -61,10 +61,9 @@ func (c *Client) endCommandSync() (*Reply, error) {
 }
 
 func (c *Client) endCommandAsync() (*asyncReply, error) {
-	c.nextTag++
 	a := &asyncReply{}
 	a.reC = make(chan *proto.Sentence)
-	a.tag = fmt.Sprintf("r%d", c.nextTag)
+	a.tag = "r" + strconv.FormatUint(c.nextTag(), 10)
 	c.w.WriteWord(".tag=" + a.tag)
 
 	c.mu.Lock()

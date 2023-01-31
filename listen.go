@@ -1,7 +1,7 @@
 package routeros
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/swoga/go-routeros/proto"
 )
@@ -42,9 +42,8 @@ func (c *Client) ListenArgsQueue(sentence []string, queueSize int) (*ListenReply
 		c.Async()
 	}
 
-	c.nextTag++
 	l := &ListenReply{c: c}
-	l.tag = fmt.Sprintf("l%d", c.nextTag)
+	l.tag = "l" + strconv.FormatUint(c.nextTag(), 10)
 	l.reC = make(chan *proto.Sentence, queueSize)
 
 	c.w.BeginSentence()
