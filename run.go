@@ -40,12 +40,16 @@ func (c *Client) RunArgs(sentence []string) (*Reply, error) {
 
 readAllSentences:
 	for {
+		timeout, timer := newTimeoutTimer(c.timeout)
 		select {
 		case _, open := <-a.reC:
+			if timer != nil {
+				timer.Stop()
+			}
 			if !open {
 				break readAllSentences
 			}
-		case <-time.After(c.timeout):
+		case <-timeout:
 			return nil, errAsyncTimeout
 		}
 	}
@@ -78,4 +82,12 @@ func (c *Client) endCommandAsync() (*asyncReply, error) {
 	}
 	c.tags[a.tag] = a
 	return a, nil
+}
+
+func newTimeoutTimer(d time.Duration) (timeout <-chan time.Time, timer *time.Timer) {
+	if d > 0 {
+		timer = time.NewTimer(d)
+		timeout = timer.C
+	}
+	return
 }
