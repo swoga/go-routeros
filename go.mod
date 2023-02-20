@@ -2,4 +2,4 @@ module github.com/swoga/go-routeros
 
 go 1.19
 
-require golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
+require golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
