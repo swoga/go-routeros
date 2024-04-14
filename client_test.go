@@ -3,11 +3,10 @@ package routeros
 import (
 	"context"
 	"flag"
+	"slices"
 	"strings"
 	"testing"
 	"time"
-
-	"golang.org/x/exp/slices"
 )
 
 var (
