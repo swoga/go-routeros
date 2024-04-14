@@ -8,4 +8,3 @@ Look in the examples directory to learn how to use this library:
 [tab](examples/tab/main.go).
 
 API documentation is available at [godoc.org](https://godoc.org/github.com/swoga/go-routeros).
-Page on the [Mikrotik Wiki](http://wiki.mikrotik.com/wiki/API_in_Go).
