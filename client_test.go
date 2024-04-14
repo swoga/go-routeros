@@ -106,7 +106,7 @@ func TestDialInvalidPort(t *testing.T) {
 		t.Fatalf("Dial succeeded; want error")
 	}
 	errors := []string{
-		"dial tcp: address tcp/xxx: unknown port",
+		"dial tcp: lookup tcp/xxx: unknown port",
 		"dial tcp: lookup tcp/xxx: Servname not supported for ai_socktype",
 	}
 	if !slices.Contains(errors, err.Error()) {
@@ -121,7 +121,7 @@ func TestDialTLSInvalidPort(t *testing.T) {
 		t.Fatalf("Dial succeeded; want error")
 	}
 	errors := []string{
-		"dial tcp: address tcp/xxx: unknown port",
+		"dial tcp: lookup tcp/xxx: unknown port",
 		"dial tcp: lookup tcp/xxx: Servname not supported for ai_socktype",
 	}
 	if !slices.Contains(errors, err.Error()) {
