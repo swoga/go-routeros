@@ -55,7 +55,7 @@ func (r *Reply) processSentence(sen *proto.Sentence) (bool, error) {
 		return true, nil
 	case "!trap", "!fatal":
 		return sen.Word == "!fatal", &DeviceError{sen}
-	case "":
+	case "", "!empty":
 		// API docs say that empty sentences should be ignored
 	default:
 		return true, &UnknownReplyError{sen}

@@ -81,7 +81,7 @@ func (l *ListenReply) processSentence(sen *proto.Sentence) (bool, error) {
 		return true, &DeviceError{sen}
 	case "!fatal":
 		return true, &DeviceError{sen}
-	case "":
+	case "", "!empty":
 		// API docs say that empty sentences should be ignored
 	default:
 		return true, &UnknownReplyError{sen}
